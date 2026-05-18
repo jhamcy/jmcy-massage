@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JMCY Massage | Premium 24/7 Mobile Massage Service</title>
+    <style>
+        /* Base Reset & Variables */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-gold: #d4af37;
+            --dark-bg: #11141a;
+            --card-bg: #1b1f27;
+            --text-light: #ffffff;
+            --text-muted: #9ca3af;
+            --success-green: #10b981;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Top Header Navigation */
+        header {
+            background-color: rgba(17, 20, 26, 0.95);
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #232936;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--primary-gold);
+        }
+
+        /* Nav Layout and Links */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-gold);
+        }
+
+        .btn-header-cta {
+            background-color: var(--primary-gold);
+            color: #000;
+            text-decoration: none;
+            padding: 8px 20px;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-header-cta:hover {
+            opacity: 0.9;
+        }
+
+        /* Hamburger Button Vector */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-light);
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        /* Hero Showcase Section */
+        .hero {
+            padding: 140px 5% 60px 5%;
+            text-align: center;
+            background: linear-gradient(rgba(17,20,26,0.85), rgba(17,20,26,1)), url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80') center/cover;
+            min-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            color: var(--primary-gold);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .rate-badge {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--primary-gold);
+            color: var(--primary-gold);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Hero Instant Booking Button */
+        .btn-main-book {
+            display: inline-block;
+            background-color: var(--primary-gold);
+            color: #000;
+            text-decoration: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .btn-main-book:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .arrival-notice {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--success-green);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Standard Section Header Layout */
+        section {
+            padding: 60px 5%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 26px;
+            margin-bottom: 40px;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary-gold);
+            margin: 10px auto 0 auto;
+        }
+
+        /* Booking Interactive Form Interface */
+        .booking-section {
+            background-color: #151921;
+        }
+
+        .form-card {
+            background-color: var(--card-bg);
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 35px 25px;
+            border-radius: 12px;
+            border: 1px solid #232936;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--dark-bg);
+            border: 1px solid #232936;
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary-gold);
+        }
+
+        /* Premium Multi-Select Checkbox Group CSS */
+        .multiselect-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-label {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--dark-bg);
+            border: 1px solid #232936;
+            padding: 12px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            color: var(--text-light) !important;
+        }
+
+        .checkbox-label:hover {
+            border-color: rgba(212, 175, 55, 0.5);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin-right: 12px;
+            accent-color: var(--primary-gold);
+            cursor: pointer;
+        }
+
+        .checkbox-left {
+            display: flex;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .checkbox-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Inline Hours Picker Styles */
+        .select-service-hours {
+            background-color: var(--card-bg) !important;
+            border: 1px solid #323a4b !important;
+            color: var(--text-light) !important;
+            padding: 4px 8px !important;
+            font-size: 13px !important;
+            width: auto !important;
+            border-radius: 4px !important;
+            cursor: pointer;
+        }
+
+        .select-service-hours:focus {
+            border-color: var(--primary-gold) !important;
+        }
+
+        .checkbox-price {
+            color: var(--primary-gold);
+            font-weight: 700;
+            font-size: 14px;
+            min-width: 45px;
+            text-align: right;
+        }
+
+        /* Highlighted style for checked status fields */
+        .checkbox-label.selected {
+            border-color: var(--primary-gold);
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        /* Price Calculation Display Card */
+        .price-summary-card {
+            background: linear-gradient(135deg, #1f2530, #151921);
+            border: 1px dashed rgba(212, 175, 55, 0.4);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .price-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-gold);
+        }
+
+        .btn-submit-form {
+            width: 100%;
+            background-color: var(--success-green);
+            color: #ffffff;
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit-form:hover {
+            background-color: #059669;
+        }
+
+        /* Process Steps Layout */
+        .steps-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .step-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            border-top: 3px solid var(--primary-gold);
+        }
+
+        .step-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary-gold);
+            margin-bottom: 10px;
+        }
+
+        .step-card h3 {
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .step-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Menu / Grid Showcase */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #232936;
+        }
+
+        .card-img {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-info {
+            padding: 20px;
+        }
+
+        .card-info h3 {
+            color: var(--primary-gold);
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .card-info p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Coverage List Styling */
+        .area-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--success-green);
+        }
+
+        .area-name {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .area-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .area-time {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #0b0d11;
+            padding: 40px 5%;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid #232936;
+        }
+        
+        .footer-portal-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            transition: text-decoration 0.2s;
+        }
+
+        .footer-portal-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Breakpoints & Mobile Navigation Drawer overrides */
+        @media (max-width: 767px) {
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #11141a;
+                border-bottom: 1px solid #232936;
+                padding: 25px 5%;
+                gap: 20px;
+                text-align: left;
+                align-items: flex-start;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.4);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-link, .btn-header-cta {
+                width: 100%;
+                padding: 10px 0;
+                font-size: 16px;
+            }
+
+            .btn-header-cta {
+                text-align: center;
+                background-color: var(--primary-gold);
+                margin-top: 5px;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .menu-toggle.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+
+            .checkbox-label {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .checkbox-right-controls {
+                width: 100%;
+                justify-content: space-between;
+                border-top: 1px solid #232936;
+                padding-top: 8px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .hero h1 { font-size: 48px; }
+            .steps-container { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Upper Navigation Menu -->
+    <header>
+        <div class="logo">JMCY<span>Massage</span></div>
+        
+        <button class="menu-toggle" id="mobileMenuBtn" aria-label="Toggle navigation structural links">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="nav-menu" id="navMenu">
+            <a href="therapist-register.html" class="nav-link">Register as a Therapist</a>
+            <a href="therapist-login.html" class="nav-link">Therapist Login</a>
+            <a href="#bookNow" class="nav-link btn-header-cta">Book Now</a>
+        </nav>
+    </header>
+
+    <!-- Header Hero Showcase -->
+    <section class="hero">
+        <div class="rate-badge">PREMIUM RATES STARTING FROM ₱500 / HOUR</div>
+        <h1>24/7 Home & Hotel<br><span>Massage Service</span></h1>
+        <p>Escape the noise and rediscover tranquility. Our professional therapists bring the premium spa experience directly to your private room.</p>
+        
+        <a href="#bookNow" class="btn-main-book">Book Your Session</a>
+        
+        <div class="arrival-notice">⚡ Prompt arrival within 30-45 minutes of dispatch</div>
+    </section>
+
+    <!-- Operational Workflow Step Sections -->
+    <section style="background-color: #151921;">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <h3>Submit Booking</h3>
+                <p>Fill out your details below. Our geolocation algorithm pairs your request with available freelance therapists.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <h3>Automated Call Dispatch</h3>
+                <p>Our platform triggers an automated voice request call straight to the therapist closest to your location coordinates.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <h3>Pure Relaxation</h3>
+                <p>The accepting licensed therapist instantly commutes to your home or hotel room address within 30 to 45 minutes.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Modality Offerings Grid -->
+    <section>
+        <h2 class="section-title">Available Modalities</h2>
+        <div class="grid-layout">
+            
+            <div class="menu-card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=400&q=80');"></div>
+                <div class="card-info">
+                    <h3>Swedish Massage</h3>
+                    <p>A classic full-body relaxation treatment utilizing long, fluid gliding strokes to optimize circulation and melt surface fatigue.</p>
+                </div>
+            </div>
+
+            <div class="menu-card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1519823551279-64bc75d44d79?auto=format&fit=crop&w=400&q=80');"></div>
+                <div class="card-info">
+                    <h3>Deep Tissue</h3>
+                    <p>Targets deep subcutaneous muscle layers and connective tissues. Engineered specifically for chronic muscle knots or back soreness.</p>
+                </div>
+            </div>
+
+            <div class="menu-card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=400&q=80');"></div>
+                <div class="card-info">
+                    <h3>Premium Shiatsu</h3>
+                    <p>Traditional non-oil Japanese bodywork focusing on deep finger-pressure along energy pathways to release tension and restore balance.</p>
+                </div>
+            </div>
+
+            <div class="menu-card">
+                <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?auto=format&fit=crop&w=400&q=80');"></div>
+                <div class="card-info">
+                    <h3>Combination Massage</h3>
+                    <p>Our custom signature blend pairing the rhythmic, smooth flows of Swedish strokes with the strategic pressure point relief of Shiatsu.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Interactive Geolocation Customer Intake Form Section -->
+    <section id="bookNow" class="booking-section">
+        <h2 class="section-title">Instant Booking Form</h2>
+        <div class="form-card">
+            <form id="spaBookingForm">
+                <div class="form-group">
+                    <label for="clientName">Your Full Name</label>
+                    <input type="text" id="clientName" required placeholder="Jane Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="clientPhone">Mobile Number</label>
+                    <input type="tel" id="clientPhone" required placeholder="0917XXXXXXX">
+                </div>
+
+                <div class="form-group">
+                    <label for="clientAddress">Complete Address / Hotel Name & Room No.</label>
+                    <textarea id="clientAddress" required placeholder="e.g., Room 1204, Grand Hyatt Hotel, BGC / 123 Ayala Ave, Makati City"></textarea>
+                </div>
+
+                <!-- Updated Form Field: Preferred Massage Checklist Matrix with Individual Hour Pickers -->
+                <div class="form-group">
+                    <label>Preferred Massage (Select Modality & Hours)</label>
+                    <div class="multiselect-container">
+                        
+                        <div class="checkbox-label" data-price="500">
+                            <span class="checkbox-left">
+                                <input type="checkbox" name="modality" value="swedish" id="modal_swedish"> 
+                                <label style="margin-bottom:0; cursor:pointer;" for="modal_swedish">Swedish Massage</label>
+                            </span>
+                            <div class="checkbox-right-controls">
+                                <select class="select-service-hours" aria-label="Hours for Swedish Massage">
+                                    <option value="1">1 Hour</option>
+                                    <option value="1.5">1.5 Hours</option>
+                                    <option value="2">2 Hours</option>
+                                    <option value="3">3 Hours</option>
+                                </select>
+                                <span class="checkbox-price">₱500</span>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-label" data-price="500">
+                            <span class="checkbox-left">
+                                <input type="checkbox" name="modality" value="deep-tissue" id="modal_deep">
+                                <label style="margin-bottom:0; cursor:pointer;" for="modal_deep">Deep Tissue Massage</label>
+                            </span>
+                            <div class="checkbox-right-controls">
+                                <select class="select-service-hours" aria-label="Hours for Deep Tissue Massage">
+                                    <option value="1">1 Hour</option>
+                                    <option value="1.5">1.5 Hours</option>
+                                    <option value="2">2 Hours</option>
+                                    <option value="3">3 Hours</option>
+                                </select>
+                                <span class="checkbox-price">₱500</span>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-label" data-price="500">
+                            <span class="checkbox-left">
+                                <input type="checkbox" name="modality" value="shiatsu" id="modal_shiatsu">
+                                <label style="margin-bottom:0; cursor:pointer;" for="modal_shiatsu">Premium Shiatsu</label>
+                            </span>
+                            <div class="checkbox-right-controls">
+                                <select class="select-service-hours" aria-label="Hours for Premium Shiatsu Massage">
+                                    <option value="1">1 Hour</option>
+                                    <option value="1.5">1.5 Hours</option>
+                                    <option value="2">2 Hours</option>
+                                    <option value="3">3 Hours</option>
+                                </select>
+                                <span class="checkbox-price">₱500</span>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-label" data-price="500">
+                            <span class="checkbox-left">
+                                <input type="checkbox" name="modality" value="combination" id="modal_combo">
+                                <label style="margin-bottom:0; cursor:pointer;" for="modal_combo">Combination Massage</label>
+                            </span>
+                            <div class="checkbox-right-controls">
+                                <select class="select-service-hours" aria-label="Hours for Combination Massage">
+                                    <option value="1">1 Hour</option>
+                                    <option value="1.5">1.5 Hours</option>
+                                    <option value="2">2 Hours</option>
+                                    <option value="3">3 Hours</option>
+                                </select>
+                                <span class="checkbox-price">₱500</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Integrated Structural Pricing Summary Card Element -->
+                <div class="price-summary-card">
+                    <div class="price-label">Estimated Total:</div>
+                    <div class="price-value" id="calculatedTotalPrice">₱0</div>
+                </div>
+
+                <button type="submit" class="btn-submit-form">Request Therapist Dispatch</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Dispatch Operational Scope Regions -->
+    <section style="background-color: #11141a;">
+        <h2 class="section-title">Areas Ready For Service</h2>
+        <div style="max-width: 600px; margin: 0 auto;">
+            
+            <div class="area-row">
+                <div>
+                    <span class="area-name">Makati City</span>
+                    <div class="area-time">Ayala Center, Salcedo, Legaspi Village</div>
+                </div>
+                <div class="area-badge">Active (30 Mins)</div>
+            </div>
+
+            <div class="area-row">
+                <div>
+                    <span class="area-name">BGC (Taguig)</span>
+                    <div class="area-time">High Street, Uptown, McKinley Hill</div>
+                </div>
+                <div class="area-badge">Active (30 Mins)</div>
+            </div>
+
+            <div class="area-row">
+                <div>
+                    <span class="area-name">Pasay Area</span>
+                    <div class="area-time">Okada, Solaire, MOA Complex, Entertainment City</div>
+                </div>
+                <div class="area-badge">Active (30 Mins)</div>
+            </div>
+
+            <div class="area-row">
+                <div>
+                    <span class="area-name">Manila</span>
+                    <div class="area-time">Malate, Ermita, Binondo, Sta. Cruz</div>
+                </div>
+                <div class="area-badge">Active (35 Mins)</div>
+            </div>
+
+            <div class="area-row">
+                <div>
+                    <span class="area-name">Parañaque</span>
+                    <div class="area-time">BF Homes, Sucat, Bicutan, Don Bosco</div>
+                </div>
+                <div class="area-badge">Active (40 Mins)</div>
+            </div>
+
+            <div class="area-row">
+                <div>
+                    <span class="area-name">Quezon City</span>
+                    <div class="area-time">Timog, Tomas Morato, Cubao, Katipunan</div>
+                </div>
+                <div class="area-badge">Active (45 Mins)</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Legal & Branding Footnotes -->
+    <footer>
+        <p>&copy; 2026 JMCY Massage Platform. All Rights Reserved.</p>
+        <p style="font-size: 10px; margin-top: 5px; color: #555;">Accepting Cash, GCash, and Major Currencies.</p>
+        <a href="therapist-login.html" class="footer-portal-link">Therapist Portal Login →</a>
+    </footer>
+
+    <script>
+        // Hamburger Menu Toggle Logic
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenuBtn.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
+        });
+
+        // =========================================================
+        // REAL-TIME MULTI-PICK CALCULATOR MATRIX ENGINE
+        // =========================================================
+        const modalityCheckboxes = document.querySelectorAll('input[name="modality"]');
+        const hourSelectors = document.querySelectorAll('.select-service-hours');
+        const totalPriceDisplay = document.getElementById('calculatedTotalPrice');
+
+        function updateLivePricing() {
+            let finalComputedTotal = 0;
+
+            modalityCheckboxes.forEach(checkbox => {
+                const parentRow = checkbox.closest('.checkbox-label');
+                const hourSelect = parentRow.querySelector('.select-service-hours');
+                const priceSpan = parentRow.querySelector('.checkbox-price');
+                
+                const baseRate = parseInt(parentRow.getAttribute('data-price'));
+                const chosenHours = parseFloat(hourSelect.value);
+                
+                // Calculate live price display per item line block
+                const rowTotal = baseRate * chosenHours;
+                priceSpan.textContent = `₱${rowTotal.toLocaleString()}`;
+
+                if (checkbox.checked) {
+                    finalComputedTotal += rowTotal;
+                    parentRow.classList.add('selected');
+                } else {
+                    parentRow.classList.remove('selected');
+                }
+            });
+
+            totalPriceDisplay.textContent = `₱${finalComputedTotal.toLocaleString()}`;
+        }
+
+        // Prevent dropdown click events from tracking as a checkbox toggle selection
+        hourSelectors.forEach(select => {
+            select.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            select.addEventListener('change', updateLivePricing);
+        });
+
+        // Hook up checkbox state changes
+        modalityCheckboxes.forEach(box => {
+            box.addEventListener('change', updateLivePricing);
+            // Allow clicking the row wrapper safely to check/uncheck
+            box.closest('.checkbox-label').addEventListener('click', (e) => {
+                if(e.target !== box && e.target !== box.nextElementSibling && !e.target.classList.contains('select-service-hours')) {
+                    box.checked = !box.checked;
+                    updateLivePricing();
+                }
+            });
+        });
+
+        // Run baseline configuration layout calculations on page launch
+        updateLivePricing();
+
+
+        // =========================================================
+        // FORM SUBMISSION AND GEOLOCATION LOGIC
+        // =========================================================
+        document.getElementById('spaBookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const chosenModalities = [];
+            modalityCheckboxes.forEach(cb => {
+                if(cb.checked) {
+                    const parent = cb.closest('.checkbox-label');
+                    const hours = parent.querySelector('.select-service-hours').value;
+                    chosenModalities.push(`${cb.value} (${hours}h)`);
+                }
+            });
+
+            if (chosenModalities.length === 0) {
+                alert("Please pick at least one massage variant to launch dispatch routing.");
+                return;
+            }
+
+            const addressInput = document.getElementById('clientAddress').value.trim();
+            const submitBtn = e.target.querySelector('.btn-submit-form');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Acquiring Coordinates...";
+            submitBtn.style.backgroundColor = "#d97706";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        alert(`Booking request accepted!\n\nDetails: ${chosenModalities.join(', ')}\nAddress: ${addressInput}\nCoordinates locked: [${lat.toFixed(4)}, ${lon.toFixed(4)}]\n\nOur system is now identifying and auto-calling the nearest therapist!`);
+                        
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Request Therapist Dispatch";
+                        submitBtn.style.backgroundColor = "#10b981";
+                        document.getElementById('spaBookingForm').reset();
+                        updateLivePricing();
+                    },
+                    (error) => {
+                        alert("We need your location permission to match you with the closest therapist in your area.");
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Request Therapist Dispatch";
+                        submitBtn.style.backgroundColor = "#10b981";
+                    }
+                );
+            } else {
+                alert("Your browser does not support geolocation matching.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Request Therapist Dispatch";
+            }
+        });
+    </script>
+</body>
+</html>

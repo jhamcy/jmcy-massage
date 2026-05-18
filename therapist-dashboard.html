@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Therapist Dashboard | JMCY Massage</title>
+    <!-- Import Supabase Javascript Client SDK Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-gold: #d4af37;
+            --dark-bg: #11141a;
+            --card-bg: #1b1f27;
+            --text-light: #ffffff;
+            --text-muted: #9ca3af;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --gcash-blue: #005ce6;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            padding: 120px 5% 40px 5%; /* Space for fixed top header */
+        }
+
+        /* Fixed Top Header Navigation */
+        header {
+            background-color: rgba(17, 20, 26, 0.95);
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #232936;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: var(--primary-gold);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .status-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+
+        .status-badge.low-balance {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Nav Menu Links architecture */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-gold);
+        }
+
+        /* Hamburger Button Vector styling */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background-color: var(--text-light);
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        /* Dashboard Layout Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 10px auto 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #232936;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        h3 {
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            color: var(--text-light);
+            border-bottom: 1px solid #232936;
+            padding-bottom: 10px;
+        }
+
+        /* Wallet Core Visual Matrix */
+        .wallet-display {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, rgba(214, 175, 55, 0.05) 0%, rgba(27, 31, 39, 1) 100%);
+            border-radius: 8px;
+            border: 1px dashed rgba(214, 175, 55, 0.2);
+            margin-bottom: 25px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .balance-amount {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-top: 5px;
+        }
+
+        /* Informative Notification Elements */
+        .notice-box {
+            background-color: rgba(214, 175, 55, 0.05);
+            border-left: 3px solid var(--primary-gold);
+            padding: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        /* Payment Destination Banner Instructions */
+        .payment-destination-box {
+            background-color: rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 6px;
+            padding: 14px;
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .payment-destination-box strong {
+            color: var(--success-green);
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Input Controls and Top-Up Button */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--dark-bg);
+            border: 1px solid #232936;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary-gold);
+        }
+
+        /* Checkbox matrix mechanics for profile properties configuration */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 5px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            accent-color: var(--primary-gold);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-gold);
+            color: #11141a;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+        }
+
+        .btn-gcash {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--gcash-blue);
+            color: white;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-gcash:hover {
+            background-color: #004fc2;
+        }
+
+        /* Transaction History Ledger Data Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            padding: 12px 10px;
+            border-bottom: 2px solid #232936;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 10px;
+            border-bottom: 1px solid #232936;
+            white-space: nowrap;
+        }
+
+        .text-credit {
+            color: var(--success-green);
+            font-weight: 600;
+        }
+
+        .text-deduct {
+            color: var(--danger-red);
+            font-weight: 600;
+        }
+
+        /* Responsive Breakpoints & Mobile Overlay Drawers */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 110px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: #11141a;
+                border-bottom: 1px solid #232936;
+                padding: 25px 5%;
+                gap: 20px;
+                text-align: left;
+                align-items: flex-start;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.4);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-link {
+                width: 100%;
+                padding: 10px 0;
+                font-size: 16px;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .menu-toggle.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header containing dynamic therapist parameters and navigation controls -->
+    <header>
+        <div class="logo">JMCY<span>Dashboard</span></div>
+        
+        <div class="header-controls">
+            <div id="onlineStatus" class="status-badge">Loading Account State...</div>
+            
+            <button class="menu-toggle" id="mobileMenuBtn" aria-label="Toggle structural menu link modules">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <nav class="nav-menu" id="navMenu">
+            <a href="index.html" class="nav-link">Main Website Home</a>
+            <a id="logoutLink" class="nav-link" style="color: var(--danger-red);">Secure Logout</a>
+        </nav>
+    </header>
+
+    <div class="dashboard-grid">
+        
+        <!-- COLUMN 1: WALLET CONTROLS CARD -->
+        <div class="column-left">
+            <div class="card">
+                <h3>My System Wallet</h3>
+                
+                <div class="wallet-display">
+                    <div class="balance-label">Available Balance</div>
+                    <div id="walletBalance" class="balance-amount">₱0.00</div>
+                </div>
+
+                <div class="notice-box">
+                    Each completed ₱500 booking automatically auto-deducts our 20% platform cut (<strong>₱100.00</strong>). Keep balance above ₱100 to remain on the booking dispatch map.
+                </div>
+
+                <!-- Top up processing terminal -->
+                <form id="topUpForm">
+                    <div class="payment-destination-box">
+                        💡 <strong>Quick Reload Steps:</strong><br>
+                        1. Click the blue button below to auto-copy our number and open GCash.<br>
+                        2. Send payment to our system receiving account.<br>
+                        3. Return here and submit your 13-digit reference code.
+                    </div>
+
+                    <!-- Express Link Out Launcher Trigger -->
+                    <button type="button" class="btn-gcash" id="launchGcashBtn">
+                        📲 Pay via GCash (Auto-Copy Number)
+                    </button>
+
+                    <div class="form-group">
+                        <label>Amount to Top-Up (PHP)</label>
+                        <input type="number" id="topUpAmount" value="200" min="100" step="50" required>
+                    </div>
+                    <div class="form-group">
+                        <label>GCash Reference Number (13 Digits)</label>
+                        <input type="text" id="gcashRef" placeholder="e.g. 5012345678901" maxlength="13" required>
+                    </div>
+                    <button type="submit" id="topUpSubmitBtn" class="btn-action">Submit Top-Up Reference</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: PARAMETERS MANAGEMENT & TRANSACTION HISTORY LEDGER -->
+        <div class="column-right">
+            
+            <!-- NEW SECTION: SKILLS SPECIALTIES & GEOGRAPHIC SERVICE COVERAGE SELECTION MAP -->
+            <div class="card">
+                <h3>Dispatch Settings &amp; Qualifications</h3>
+                <form id="profileSettingsForm">
+                    <div class="form-group">
+                        <label>Massage Specialties (Select All Applicable)</label>
+                        <div class="checkbox-grid" id="specialtiesContainer">
+                            <label class="checkbox-item"><input type="checkbox" value="Swedish Massage"> Swedish Massage</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Deep Tissue Massage"> Deep Tissue Massage</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Shiatsu Massage"> Shiatsu Massage</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Thai Massage"> Thai Massage</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Ventosa / Cupping"> Ventosa / Cupping</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Prenatal / Postnatal"> Prenatal / Postnatal</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Active Service Coverage Area (Your Booking Limits)</label>
+                        <div class="checkbox-grid" id="serviceAreasContainer">
+                            <label class="checkbox-item"><input type="checkbox" value="Navotas City"> Navotas City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Malabon City"> Malabon City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Caloocan City (South)"> Caloocan (South)</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Caloocan City (North)"> Caloocan (North)</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Valenzuela City"> Valenzuela City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Quezon City"> Quezon City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Manila City"> Manila City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Marikina City"> Marikina City</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="saveProfileBtn" class="btn-action" style="background-color: transparent; color: var(--primary-gold); border: 1px solid var(--primary-gold);">
+                        Save Dispatch Metrics
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Account Ledger Logs</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date &amp; Time</th>
+                                <th>Description / Booking ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerBody">
+                            <!-- Dynamic transactional components inject through runtime loops here -->
+                            <tr id="emptyLedgerPlaceholder">
+                                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No historical transaction history recorded in your profile yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Connect system initialization using your explicit access credentials keys
+        const SUPABASE_URL = "https://lkyjuwwvciyyozduzxso.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreWp1d3d2Y2l5eW96ZHV6eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODY1MTIsImV4cCI6MjA5NDY2MjUxMn0.IY3WU42SdnLnE94XcKZDZXCYXlLxZyWwpFy7YwzdWM8";
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // UI Core Constants Map Links Handles
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+        const logoutLink = document.getElementById('logoutLink');
+        const balanceDisplay = document.getElementById('walletBalance');
+        const onlineStatus = document.getElementById('onlineStatus');
+        const ledgerBody = document.getElementById('ledgerBody');
+        const emptyLedgerPlaceholder = document.getElementById('emptyLedgerPlaceholder');
+
+        let currentUser = null;
+
+        // Hamburger Mobile Menu Display Toggle Mechanics
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+
+        // Security Authentication Router Enforcement Block
+        async function checkSecuritySession() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            
+            if (error || !session) {
+                alert("Security Authorization Warning: Please log in first to access the dashboard portal securely.");
+                window.location.href = "therapist-login.html";
+                return;
+            }
+            
+            currentUser = session.user;
+            await loadTherapistProfileData();
+            await fetchLedgerLogs();
+        }
+
+        // Live Profile Properties Fetch and Bind Controller Engine
+        async function loadTherapistProfileData() {
+            try {
+                const { data: profile, error } = await _supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error) throw error;
+
+                if (profile) {
+                    // Render operational balances matching live cloud records
+                    const balance = parseFloat(profile.wallet_balance || 0);
+                    balanceDisplay.textContent = `₱${balance.toFixed(2)}`;
+                    
+                    // Evaluate map rendering eligibility rules
+                    if (balance < 100) {
+                        onlineStatus.textContent = "Offline (Low Balance)";
+                        onlineStatus.className = "status-badge low-balance";
+                    } else {
+                        onlineStatus.textContent = profile.is_online ? "Active & Online" : "Paused / Offline";
+                        if (!profile.is_online) onlineStatus.className = "status-badge low-balance";
+                    }
+
+                    // Map custom array data back onto checkbox view trees safely
+                    if (profile.specialties && Array.isArray(profile.specialties)) {
+                        profile.specialties.forEach(spec => {
+                            const checkbox = document.querySelector(`#specialtiesContainer input[value="${spec}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+
+                    if (profile.service_areas && Array.isArray(profile.service_areas)) {
+                        profile.service_areas.forEach(area => {
+                            const checkbox = document.querySelector(`#serviceAreasContainer input[value="${area}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error linking backend profile state parameters:", err);
+            }
+        }
+
+        // Load historical transaction logs linked to this therapist account
+        async function fetchLedgerLogs() {
+            try {
+                const { data: logs, error } = await _supabase
+                    .from('wallet_ledger')
+                    .select('*')
+                    .eq('therapist_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (logs && logs.length > 0) {
+                    emptyLedgerPlaceholder.style.display = "none";
+                    // Clear out old generated table entries before reloading fresh state
+                    const rowsToRemove = ledgerBody.querySelectorAll('tr:not(#emptyLedgerPlaceholder)');
+                    rowsToRemove.forEach(row => row.remove());
+
+                    logs.forEach(log => {
+                        const dateObj = new Date(log.created_at);
+                        const timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + `, ` + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                        
+                        const isCredit = log.transaction_type === 'Top-Up' || log.transaction_type === 'System Credit';
+                        const typeClass = isCredit ? 'text-credit' : 'text-deduct';
+                        const prefix = isCredit ? '+' : '-';
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${timeString}</td>
+                            <td>${log.description}</td>
+                            <td class="${typeClass}">${log.status || 'Cleared'}</td>
+                            <td class="${typeClass}">${prefix}₱${parseFloat(log.amount).toFixed(2)}</td>
+                        `;
+                        ledgerBody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error("Error parsing profile transactional ledger arrays:", err);
+            }
+        }
+
+        // Profile Properties Submission and Persistence Sync Engine
+        document.getElementById('profileSettingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('saveProfileBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Updating Target Parameters...";
+
+            // Scrape arrays from active checked node values matrices
+            const selectedSpecialties = Array.from(document.querySelectorAll('#specialtiesContainer input:checked')).map(el => el.value);
+            const selectedAreas = Array.from(document.querySelectorAll('#serviceAreasContainer input:checked')).map(el => el.value);
+
+            try {
+                const { error } = await _supabase
+                    .from('profiles')
+                    .update({
+                        specialties: selectedSpecialties,
+                        service_areas: selectedAreas
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+                alert("🎉 Dispatch metrics, specialty tags, and backup service coverage boundaries saved successfully!");
+            } catch (err) {
+                alert("Failed to save profile parameters updates: " + err.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Save Dispatch Metrics";
+            }
+        });
+
+        // Smart Copy and Deep Link Launch Feature
+        const launchGcashBtn = document.getElementById('launchGcashBtn');
+        const systemGcashNumber = "09310410733";
+
+        launchGcashBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(systemGcashNumber).then(() => {
+                alert("📋 System GCash Number (0931 041 0733) copied to clipboard!\n\nOpening GCash app... Please paste this number as the recipient.");
+                window.location.href = "gcash://";
+                setTimeout(() => { window.open("https://www.gcash.com", "_blank"); }, 1500);
+            }).catch(err => {
+                alert("Please manually send your reload payment to our system GCash account:\n\n0931 041 0733");
+                window.location.href = "gcash://";
+            });
+        });
+
+        // Top-Up Record Submission Handler
+        document.getElementById('topUpForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('topUpSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Logging Ledger Row...";
+            
+            const amount = parseFloat(document.getElementById('topUpAmount').value);
+            const refNumber = document.getElementById('gcashRef').value.trim();
+
+            if (refNumber.length < 10) {
+                alert("Please input a valid GCash Reference Number.");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Submit Top-Up Reference";
+                return;
+            }
+
+            try {
+                // Insert a tracking transaction record inside the server data structure ledger tables
+                const { error } = await _supabase
+                    .from('wallet_ledger')
+                    .insert([
+                        {
+                            therapist_id: currentUser.id,
+                            description: `Wallet Reload Request (Ref: ${refNumber})`,
+                            transaction_type: 'Top-Up',
+                            status: 'Pending Approval',
+                            amount: amount
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                alert(`Top-Up reference request logged successfully!\n\nYour profile wallet balance updates immediately once the JMCY clearing desk cross-references your submission code.`);
+                document.getElementById('gcashRef').value = "";
+                await fetchLedgerLogs();
+            } catch (err) {
+                alert("Error submitting reference token validation data: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Submit Top-Up Reference";
+            }
+        });
+
+        // Logout sequence hook logic
+        logoutLink.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to securely log out of your dispatch account session?")) {
+                await _supabase.auth.signOut();
+                window.location.href = "therapist-login.html";
+            }
+        });
+
+        // Kick off authorization loop checks immediately upon asset boot
+        window.addEventListener('DOMContentLoaded', checkSecuritySession);
+    </script>
+</body>
+</html>

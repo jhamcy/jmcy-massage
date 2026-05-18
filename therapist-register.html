@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Therapist Registration | JMCY Massage</title>
+    <!-- Import Supabase Javascript Client SDK Matrix Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-gold: #d4af37;
+            --dark-bg: #11141a;
+            --card-bg: #1b1f27;
+            --text-light: #ffffff;
+            --text-muted: #9ca3af;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: var(--card-bg);
+            border: 1px solid #232936;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h2 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .auth-header h2 span {
+            color: var(--primary-gold);
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--dark-bg);
+            border: 1px solid #232936;
+            border-radius: 6px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary-gold);
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-gold);
+            color: #11141a;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+
+        .btn-register:hover {
+            opacity: 0.9;
+        }
+
+        .btn-register:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error and Status Popups styling */
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2>JMCY<span>Portal</span></h2>
+            <p>Create your Professional Therapist Account</p>
+        </div>
+
+        <!-- Dynamic feedback alert notification box container -->
+        <div id="alertBox" class="alert"></div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" placeholder="e.g. Juan Dela Cruz" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mobile Number (For Dispatch Profiles)</label>
+                <input type="text" id="phoneNumber" placeholder="e.g. +639123456789" required>
+            </div>
+
+            <div class="form-group">
+                <label>Create Account Password</label>
+                <input type="password" id="password" placeholder="Minimum 6 characters" minlength="6" required>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-register">Register Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have a portal account? <a href="therapist-login.html">Log In Here</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the connection using your provided credentials
+        const SUPABASE_URL = "https://lkyjuwwvciyyozduzxso.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreWp1d3d2Y2l5eW96ZHV6eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODY1MTIsImV4cCI6MjA5NDY2MjUxMn0.IY3WU42SdnLnE94XcKZDZXCYXlLxZyWwpFy7YwzdWM8";
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const registerForm = document.getElementById('registerForm');
+        const alertBox = document.getElementById('alertBox');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Notification routing logic function
+        function displayAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.style.display = "block";
+            if (type === 'error') {
+                alertBox.className = "alert alert-error";
+            } else {
+                alertBox.className = "alert alert-success";
+            }
+        }
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Component state lock management
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Processing Registration...";
+            alertBox.style.display = "none";
+
+            const fullName = document.getElementById('fullName').value.trim();
+            let phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Automatically format local numbers to international E.164 (+63) format if missing
+            if (phoneNumber.startsWith('0')) {
+                phoneNumber = '+63' + phoneNumber.substring(1);
+            } else if (!phoneNumber.startsWith('+')) {
+                phoneNumber = '+' + phoneNumber;
+            }
+
+            try {
+                // 1. Fire registration parameters into Supabase Auth engine core
+                const { data: authData, error: authError } = await _supabase.auth.signUp({
+                    phone: phoneNumber,
+                    password: password
+                });
+
+                if (authError) throw authError;
+
+                if (authData.user) {
+                    // 2. Insert complementary transaction data matching user ID directly into data-table profile ledger
+                    const { error: profileError } = await _supabase
+                        .from('profiles')
+                        .insert([
+                            {
+                                id: authData.user.id,
+                                phone_number: phoneNumber,
+                                full_name: fullName,
+                                wallet_balance: 500.00, // Initial seed balance package
+                                is_online: true
+                            }
+                        ]);
+
+                    if (profileError) throw profileError;
+
+                    displayAlert("🎉 Registration Successful! Redirecting to login portal...", "success");
+                    
+                    // Route user to login pipeline processing context
+                    setTimeout(() => {
+                        window.location.href = "therapist-login.html";
+                    }, 2500);
+                }
+
+            } catch (error) {
+                displayAlert(error.message || "An unhandled execution event stopped registration.", "error");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Register Account";
+            }
+        });
+    </script>
+</body>
+</html>
