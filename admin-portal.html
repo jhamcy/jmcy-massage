@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Clearing Desk | JMCY Massage</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --primary-gold: #d4af37;
+            --dark-bg: #11141a;
+            --card-bg: #1b1f27;
+            --text-light: #ffffff;
+            --text-muted: #9ca3af;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            padding: 40px 5%;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #232936;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 span {
+            color: var(--primary-gold);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .refresh-btn, .logout-btn {
+            background-color: transparent;
+            border: 1px solid var(--primary-gold);
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .refresh-btn {
+            color: var(--primary-gold);
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--primary-gold);
+            color: #000;
+        }
+
+        .logout-btn {
+            color: var(--danger-red);
+            border-color: var(--danger-red);
+        }
+
+        .logout-btn:hover {
+            background-color: var(--danger-red);
+            color: #fff;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #232936;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            padding: 12px 10px;
+            border-bottom: 2px solid #232936;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 10px;
+            border-bottom: 1px solid #232936;
+        }
+
+        .badge-pending {
+            background-color: rgba(214, 175, 55, 0.1);
+            color: var(--primary-gold);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-approve {
+            background-color: var(--success-green);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-reject {
+            background-color: var(--danger-red);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-approve:hover, .btn-reject:hover {
+            opacity: 0.9;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>JMCY <span>Clearing Desk</span></h1>
+            <div class="header-actions">
+                <button class="refresh-btn" onclick="fetchPendingTopUps()">🔄 Refresh Requests</button>
+                <button class="logout-btn" id="adminLogoutBtn">🔒 Logout</button>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2>Pending Wallet Reloads</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requested Date</th>
+                            <th>Therapist Name</th>
+                            <th>Description / Reference</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminLedgerBody">
+                        <tr id="emptyAdminPlaceholder">
+                            <td colspan="6" class="empty-state">No pending top-up reference requests found. All clear! ✨</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://lkyjuwwvciyyozduzxso.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreWp1d3d2Y2l5eW96ZHV6eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODY1MTIsImV4cCI6MjA5NDY2MjUxMn0.IY3WU42SdnLnE94XcKZDZXCYXlLxZyWwpFy7YwzdWM8";
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const adminLedgerBody = document.getElementById('adminLedgerBody');
+        const emptyPlaceholder = document.getElementById('emptyAdminPlaceholder');
+
+        // Enforcement Route Guard: Restrict non-admin accounts from loading page metrics
+        async function enforceAdminSecurity() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            
+            if (error || !session || session.user.email.toLowerCase() !== 'jamesdelrosario30@gmail.com') {
+                alert("Access Denied: Restricted Administrative Personnel Only.");
+                window.location.href = "therapist-login.html";
+                return;
+            }
+            
+            // Authorized session cleared -> launch lookup cycle
+            await fetchPendingTopUps();
+        }
+
+        // Fetch all Ledger requests labeled 'Pending Approval'
+        async function fetchPendingTopUps() {
+            try {
+                const { data: pendingLogs, error } = await _supabase
+                    .from('wallet_ledger')
+                    .select(`
+                        id,
+                        created_at,
+                        therapist_id,
+                        description,
+                        amount,
+                        status,
+                        profiles ( full_name )
+                    `)
+                    .eq('status', 'Pending Approval')
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+
+                // Clear out historical generated items safely
+                const rowsToRemove = adminLedgerBody.querySelectorAll('tr:not(#emptyAdminPlaceholder)');
+                rowsToRemove.forEach(row => row.remove());
+
+                if (pendingLogs && pendingLogs.length > 0) {
+                    emptyPlaceholder.style.display = "none";
+
+                    pendingLogs.forEach(log => {
+                        const dateObj = new Date(log.created_at);
+                        const dateString = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const therapistName = log.profiles ? log.profiles.full_name : "Unknown Therapist";
+
+                        const tr = document.createElement('tr');
+                        tr.id = `row-${log.id}`;
+                        tr.innerHTML = `
+                            <td>${dateString}</td>
+                            <td><strong>${therapistName}</strong></td>
+                            <td><code>${log.description}</code></td>
+                            <td style="color: var(--success-green); font-weight:700;">₱${parseFloat(log.amount).toFixed(2)}</td>
+                            <td><span class="badge-pending">${log.status}</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn-approve" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Cleared')">Approve</button>
+                                    <button class="btn-reject" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Rejected')">Reject</button>
+                                </div>
+                            </td>
+                        `;
+                        adminLedgerBody.appendChild(tr);
+                    });
+                } else {
+                    emptyPlaceholder.style.display = "table-row";
+                }
+            } catch (err) {
+                alert("Error fetching clearing items: " + err.message);
+            }
+        }
+
+        // Processing Logic: Core Balance Adjustment & State Tracking Database updates
+        async function processReload(ledgerId, therapistId, amount, nextStatus) {
+            if (!confirm(`Are you sure you want to mark this transaction as ${nextStatus}?`)) return;
+
+            try {
+                if (nextStatus === 'Cleared') {
+                    // 1. Fetch current profile wallet state 
+                    const { data: profile, error: fetchErr } = await _supabase
+                        .from('profiles')
+                        .select('wallet_balance')
+                        .eq('id', therapistId)
+                        .single();
+
+                    if (fetchErr) throw fetchErr;
+
+                    const currentBalance = parseFloat(profile.wallet_balance || 0);
+                    const calculatedNewBalance = currentBalance + parseFloat(amount);
+
+                    // 2. Commit combined sum back onto database profile properties
+                    const { error: profileErr } = await _supabase
+                        .from('profiles')
+                        .update({ wallet_balance: calculatedNewBalance })
+                        .eq('id', therapistId);
+
+                    if (profileErr) throw profileErr;
+                }
+
+                // 3. Mark transaction state row entry out of checking queue 
+                const { error: ledgerErr } = await _supabase
+                    .from('wallet_ledger')
+                    .update({ status: nextStatus })
+                    .eq('id', ledgerId);
+
+                if (ledgerErr) throw ledgerErr;
+
+                alert(`Transaction successfully processed as: ${nextStatus}`);
+                await fetchPendingTopUps(); 
+
+            } catch (err) {
+                alert("Database Processing Fault: " + err.message);
+            }
+        }
+
+        // Dedicated administrative account clean logout routine
+        document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+            if (confirm("Sign out from secure administrator clearing desk desk session?")) {
+                await _supabase.auth.signOut();
+                window.location.href = "therapist-login.html";
+            }
+        });
+
+        // Initialize session checks when DOM layout is stable
+        window.addEventListener('DOMContentLoaded', enforceAdminSecurity);
+    </script>
+</body>
+</html>
