@@ -21,6 +21,8 @@
             --text-muted: #9ca3af;
             --success-green: #10b981;
             --danger-red: #ef4444;
+            --warning-orange: #f59e0b;
+            --info-blue: #3b82f6;
         }
 
         body {
@@ -30,7 +32,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -83,12 +85,26 @@
             color: #fff;
         }
 
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1.2fr 0.8fr;
+            }
+        }
+
         .card {
             background-color: var(--card-bg);
             border: 1px solid #232936;
             border-radius: 12px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            height: fit-content;
+            margin-bottom: 30px;
         }
 
         h2 {
@@ -97,6 +113,17 @@
             letter-spacing: 0.5px;
             margin-bottom: 20px;
             color: var(--text-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 span.count-badge {
+            background: rgba(255,255,255,0.1);
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            color: var(--text-muted);
         }
 
         .table-container {
@@ -123,15 +150,35 @@
         td {
             padding: 14px 10px;
             border-bottom: 1px solid #232936;
+            vertical-align: middle;
         }
 
-        .badge-pending {
-            background-color: rgba(214, 175, 55, 0.1);
-            color: var(--primary-gold);
+        .badge {
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
+            display: inline-block;
+        }
+        .status-pending-admin {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--info-blue);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .status-dispatched {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-orange);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .status-accepted {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .status-rejected {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .btn-group {
@@ -139,7 +186,7 @@
             gap: 8px;
         }
 
-        .btn-approve {
+        .btn-approve, .btn-action-complete, .btn-dispatch {
             background-color: var(--success-green);
             color: white;
             border: none;
@@ -148,6 +195,11 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 12px;
+        }
+
+        .btn-dispatch {
+            background-color: var(--primary-gold);
+            color: #000;
         }
 
         .btn-reject {
@@ -161,14 +213,39 @@
             font-size: 12px;
         }
 
-        .btn-approve:hover, .btn-reject:hover {
+        .btn-approve:hover, .btn-reject:hover, .btn-action-complete:hover, .btn-dispatch:hover {
             opacity: 0.9;
+        }
+
+        .select-therapist-dropdown {
+            background-color: var(--dark-bg);
+            border: 1px solid #232936;
+            color: var(--text-light);
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            max-width: 180px;
         }
 
         .empty-state {
             text-align: center;
             padding: 40px;
             color: var(--text-muted);
+        }
+
+        code {
+            background: #11141a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #e0e0e0;
+        }
+
+        /* Highlight matching highlighted booking from url context */
+        .highlighted-booking-row {
+            background-color: rgba(212, 175, 55, 0.08) !important;
+            border-left: 4px solid var(--primary-gold);
         }
     </style>
 </head>
@@ -178,32 +255,77 @@
         <header>
             <h1>JMCY <span>Clearing Desk</span></h1>
             <div class="header-actions">
-                <button class="refresh-btn" onclick="fetchPendingTopUps()">🔄 Refresh Requests</button>
+                <button class="refresh-btn" onclick="refreshDashboardData()">🔄 Sync Dashboard</button>
                 <button class="logout-btn" id="adminLogoutBtn">🔒 Logout</button>
             </div>
         </header>
 
-        <div class="card">
-            <h2>Pending Wallet Reloads</h2>
+        <div class="card" style="border: 1px solid rgba(59, 130, 246, 0.3);">
+            <h2 style="color: var(--info-blue);">📥 Incoming Customer Requests <span class="count-badge" id="incomingCount" style="color:var(--info-blue);">0 waiting</span></h2>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Requested Date</th>
-                            <th>Therapist Name</th>
-                            <th>Description / Reference</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Time</th>
+                            <th>Location/Client</th>
+                            <th>Requested Modalities</th>
+                            <th>Total Price</th>
+                            <th>Assign Available Therapist</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="adminLedgerBody">
-                        <tr id="emptyAdminPlaceholder">
-                            <td colspan="6" class="empty-state">No pending top-up reference requests found. All clear! ✨</td>
+                    <tbody id="adminIncomingBody">
+                        <tr id="emptyIncomingPlaceholder">
+                            <td colspan="6" class="empty-state">No new unassigned customer intakes waiting. Everything is organized! 📃</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="dashboard-grid">
+            
+            <div class="card">
+                <h2>Active Live Monitor Queue <span class="count-badge" id="dispatchCount">0 active</span></h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Client Details</th>
+                                <th>Assigned Therapist</th>
+                                <th>Status</th>
+                                <th>Control Option</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminDispatchBody">
+                            <tr id="emptyDispatchPlaceholder">
+                                <td colspan="4" class="empty-state">No active bookings out in the field right now. 💤</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Pending Wallet Reloads <span class="count-badge" id="reloadCount">0 pending</span></h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Therapist</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminLedgerBody">
+                            <tr id="emptyAdminPlaceholder">
+                                <td colspan="3" class="empty-state">No pending account refills. All clean! ✨</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -212,8 +334,17 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreWp1d3d2Y2l5eW96ZHV6eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODY1MTIsImV4cCI6MjA5NDY2MjUxMn0.IY3WU42SdnLnE94XcKZDZXCYXlLxZyWwpFy7YwzdWM8";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const adminIncomingBody = document.getElementById('adminIncomingBody');
+        const emptyIncomingPlaceholder = document.getElementById('emptyIncomingPlaceholder');
+        const adminDispatchBody = document.getElementById('adminDispatchBody');
+        const emptyDispatchPlaceholder = document.getElementById('emptyDispatchPlaceholder');
         const adminLedgerBody = document.getElementById('adminLedgerBody');
         const emptyPlaceholder = document.getElementById('emptyAdminPlaceholder');
+
+        // Capture highlighted parameters passed directly via the link
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoHighlightId = urlParams.get('assign');
 
         async function enforceAdminSecurity() {
             const { data: { session }, error } = await _supabase.auth.getSession();
@@ -224,20 +355,280 @@
                 return;
             }
             
-            await fetchPendingTopUps();
+            await refreshDashboardData();
         }
 
+        async function refreshDashboardData() {
+            // Fetch all global profiles to allow pairing dropdown allocations
+            const { data: allTherapists, error } = await _supabase
+                .from('profiles')
+                .select('id, full_name, service_areas, wallet_balance')
+                .gte('wallet_balance', 100);
+
+            await Promise.all([
+                fetchIncomingBookings(allTherapists || []),
+                fetchLiveDispatches(),
+                fetchPendingTopUps()
+            ]);
+        }
+
+        // =========================================================
+        // STEP 1: FETCH UNASSIGNED 'Pending Admin' BOOKINGS
+        // =========================================================
+        async function fetchIncomingBookings(therapistsList) {
+            try {
+                const { data: incoming, error } = await _supabase
+                    .from('bookings')
+                    .select('*')
+                    .eq('status', 'Pending Admin')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const activeRows = adminIncomingBody.querySelectorAll('tr:not(#emptyIncomingPlaceholder)');
+                activeRows.forEach(row => row.remove());
+
+                document.getElementById('incomingCount').textContent = `${incoming ? incoming.length : 0} waiting`;
+
+                if (incoming && incoming.length > 0) {
+                    emptyIncomingPlaceholder.style.display = "none";
+
+                    incoming.forEach(booking => {
+                        const dateObj = new Date(booking.created_at);
+                        const timeString = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        // Filter the therapist pool based on matching coverage area array configurations
+                        const filteredTherapists = therapistsList.filter(t => 
+                            t.service_areas && Array.isArray(t.service_areas) && t.service_areas.includes(booking.city)
+                        );
+
+                        const tr = document.createElement('tr');
+                        tr.id = `incoming-booking-${booking.id}`;
+                        
+                        // Apply highlighted borders if the booking ID matches the context link
+                        if (autoHighlightId && booking.id === autoHighlightId) {
+                            tr.classList.add('highlighted-booking-row');
+                        }
+
+                        // Generate therapist selection options dynamically
+                        let dropdownOptions = `<option value="" disabled selected>Choose Therapist (${filteredTherapists.length} available)...</option>`;
+                        filteredTherapists.forEach(t => {
+                            dropdownOptions += `<option value="${t.id}">👤 ${t.full_name} (Bal: ₱${t.wallet_balance})</option>`;
+                        });
+
+                        tr.innerHTML = `
+                            <td>${timeString}</td>
+                            <td>
+                                <strong>${booking.client_name}</strong> (${booking.client_phone})<br>
+                                <span style="font-size:12px; color:var(--text-muted);">${booking.city} - ${booking.exact_address}</span>
+                            </td>
+                            <td><span style="font-size:12px; color:var(--text-muted);">${booking.modalities.join(', ')}</span></td>
+                            <td style="color:var(--primary-gold); font-weight:bold;">₱${parseFloat(booking.total_price).toFixed(2)}</td>
+                            <td>
+                                <select class="select-therapist-dropdown" id="select-therapist-for-${booking.id}">
+                                    ${dropdownOptions}
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn-dispatch" onclick="commitAdminDispatch('${booking.id}')">Dispatch</button>
+                            </td>
+                        `;
+                        adminIncomingBody.appendChild(tr);
+                    });
+                } else {
+                    emptyIncomingPlaceholder.style.display = "table-row";
+                }
+            } catch (err) {
+                console.error("Error loading intake desk: ", err.message);
+            }
+        }
+
+        // =========================================================
+        // ACTION: ASSIGN THERAPIST AND DISPATCH VIA WHATSAPP API
+        // =========================================================
+        async function commitAdminDispatch(bookingId) {
+            const dropdown = document.getElementById(`select-therapist-for-${bookingId}`);
+            const selectedTherapistId = dropdown.value;
+
+            if (!selectedTherapistId) {
+                alert("Please select a qualified therapist from the dropdown selection list first.");
+                return;
+            }
+
+            try {
+                // Fetch full info of the selected therapist
+                const { data: therapist, error: tErr } = await _supabase
+                    .from('profiles')
+                    .select('full_name, phone_number')
+                    .eq('id', selectedTherapistId)
+                    .single();
+
+                if (tErr) throw tErr;
+
+                // 1. Update the booking status row inside Supabase to 'Dispatched'
+                const { data: updatedBooking, error: uErr } = await _supabase
+                    .from('bookings')
+                    .update({ 
+                        therapist_id: selectedTherapistId,
+                        status: 'Dispatched'
+                    })
+                    .eq('id', bookingId)
+                    .select()
+                    .single();
+
+                if (uErr) throw uErr;
+
+                alert(`Booking assigned! Launching routing link to ${therapist.full_name}'s WhatsApp...`);
+                
+                // 2. Open WhatsApp to prompt the therapist for confirmation
+                triggerTherapistWhatsAppDispatch(
+                    updatedBooking.id,
+                    therapist.phone_number,
+                    therapist.full_name,
+                    updatedBooking.client_name,
+                    updatedBooking.client_phone,
+                    updatedBooking.city,
+                    updatedBooking.exact_address,
+                    updatedBooking.modalities,
+                    parseFloat(updatedBooking.total_price).toFixed(2)
+                );
+
+                await refreshDashboardData();
+
+            } catch (err) {
+                alert("Failed to commit dispatch: " + err.message);
+            }
+        }
+
+        function triggerTherapistWhatsAppDispatch(bookingId, therapistPhone, therapistName, name, phone, city, address, modalities, finalCost) {
+            let formattedPhone = therapistPhone.replace(/[^0-9]/g, "");
+            if (formattedPhone.startsWith("0")) {
+                formattedPhone = "63" + formattedPhone.substring(1);
+            }
+
+            // Production domain configuration paths
+            const baseResponseUrl = "https://yourdomain.com/respond.html";
+            const acceptLink = `${baseResponseUrl}?id=${bookingId}&action=Accepted`;
+            const rejectLink = `${baseResponseUrl}?id=${bookingId}&action=Rejected`;
+
+            const messageText = 
+`🚨 *NEW JMCY DISPATCH BOOKING REQUEST* 🚨
+-----------------------------------------
+👤 *Assigned Therapist:* ${therapistName}
+📍 *Target Region:* ${city}
+🆔 *Booking Reference:* ${bookingId.substring(0,8)}...
+
+📋 *CUSTOMER DETAIL PROFILE:*
+• *Client Name:* ${name}
+• *Contact Number:* ${phone}
+• *Exact Destination Address:* ${address}
+
+💆‍♂️ *TREATMENT VARIANT ORDER:*
+${modalities.map(m => `  - ${m}`).join("\n")}
+
+💰 *COLLECTIBLE AMOUNT:* ${finalCost} PHP
+-----------------------------------------
+⚡ *ACTION REQUIRED FOR DISPATCH MONITORING:*
+Please tap one of the instant feedback tracking links below:
+
+👉 [ ✅ ACCEPT THIS JOB ]
+${acceptLink}
+
+👉 [ ❌ REJECT THIS JOB ]
+${rejectLink}`;
+
+            const encodedMessage = encodeURIComponent(messageText);
+            window.open(`https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`, '_blank');
+        }
+
+        // =========================================================
+        // STEP 2: RE-RENDER LIVE MONITOR TRACKING FEED
+        // =========================================================
+        async function fetchLiveDispatches() {
+            try {
+                const { data: liveBookings, error } = await _supabase
+                    .from('bookings')
+                    .select(`
+                        id,
+                        client_name,
+                        city,
+                        total_price,
+                        status,
+                        profiles ( full_name )
+                    `)
+                    .in('status', ['Dispatched', 'Accepted', 'Rejected'])
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const activeRows = adminDispatchBody.querySelectorAll('tr:not(#emptyDispatchPlaceholder)');
+                activeRows.forEach(row => row.remove());
+
+                document.getElementById('dispatchCount').textContent = `${liveBookings ? liveBookings.length : 0} active`;
+
+                if (liveBookings && liveBookings.length > 0) {
+                    emptyDispatchPlaceholder.style.display = "none";
+
+                    liveBookings.forEach(booking => {
+                        const therapistName = booking.profiles ? booking.profiles.full_name : "Unassigned";
+
+                        let statusClass = "status-dispatched";
+                        if(booking.status === 'Accepted') statusClass = "status-accepted";
+                        if(booking.status === 'Rejected') statusClass = "status-rejected";
+
+                        let actionButtonHtml = '';
+                        if (booking.status === 'Accepted') {
+                            actionButtonHtml = `<button class="btn-action-complete" onclick="settleBooking('${booking.id}', 'Completed')">Mark Done</button>`;
+                        } else if (booking.status === 'Rejected') {
+                            actionButtonHtml = `<span style="color:var(--danger-red); font-size:11px; font-weight:bold;">RE-ASSIGN NEEDED</span>`;
+                        } else {
+                            actionButtonHtml = `<span style="color:var(--text-muted); font-size:12px;">Waiting...</span>`;
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${booking.client_name}</strong><br><span style="font-size:11px; color:var(--text-muted);">${booking.city}</span></td>
+                            <td>${therapistName}</td>
+                            <td><span class="badge ${statusClass}">${booking.status}</span></td>
+                            <td>${actionButtonHtml}</td>
+                        `;
+                        adminDispatchBody.appendChild(tr);
+                    });
+                } else {
+                    emptyDispatchPlaceholder.style.display = "table-row";
+                }
+            } catch (err) {
+                console.error("Error: ", err.message);
+            }
+        }
+
+        async function settleBooking(bookingId, finalStatus) {
+            if (!confirm(`Mark this session status as ${finalStatus}?`)) return;
+            try {
+                const { error } = await _supabase
+                    .from('bookings')
+                    .update({ status: finalStatus })
+                    .eq('id', bookingId);
+
+                if (error) throw error;
+                await refreshDashboardData();
+            } catch(err) {
+                alert("Error setting status: " + err.message);
+            }
+        }
+
+        // =========================================================
+        // STEP 3: FINANCIAL LEDGER REFILL VERIFICATION
+        // =========================================================
         async function fetchPendingTopUps() {
             try {
                 const { data: pendingLogs, error } = await _supabase
                     .from('wallet_ledger')
                     .select(`
                         id,
-                        created_at,
                         therapist_id,
                         description,
                         amount,
-                        status,
                         profiles ( full_name )
                     `)
                     .eq('status', 'Pending Approval')
@@ -248,26 +639,22 @@
                 const rowsToRemove = adminLedgerBody.querySelectorAll('tr:not(#emptyAdminPlaceholder)');
                 rowsToRemove.forEach(row => row.remove());
 
+                document.getElementById('reloadCount').textContent = `${pendingLogs ? pendingLogs.length : 0} pending`;
+
                 if (pendingLogs && pendingLogs.length > 0) {
                     emptyPlaceholder.style.display = "none";
 
                     pendingLogs.forEach(log => {
-                        const dateObj = new Date(log.created_at);
-                        const dateString = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         const therapistName = log.profiles ? log.profiles.full_name : "Unknown Therapist";
 
                         const tr = document.createElement('tr');
-                        tr.id = `row-${log.id}`;
                         tr.innerHTML = `
-                            <td>${dateString}</td>
-                            <td><strong>${therapistName}</strong></td>
-                            <td><code>${log.description}</code></td>
+                            <td><strong>${therapistName}</strong><br><code style="font-size:10px;">${log.description}</code></td>
                             <td style="color: var(--success-green); font-weight:700;">₱${parseFloat(log.amount).toFixed(2)}</td>
-                            <td><span class="badge-pending">${log.status}</span></td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn-approve" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Cleared')">Approve</button>
-                                    <button class="btn-reject" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Rejected')">Reject</button>
+                                    <button class="btn-approve" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Cleared')">🟢</button>
+                                    <button class="btn-reject" onclick="processReload('${log.id}', '${log.therapist_id}', ${log.amount}, 'Rejected')">🔴</button>
                                 </div>
                             </td>
                         `;
@@ -277,17 +664,14 @@
                     emptyPlaceholder.style.display = "table-row";
                 }
             } catch (err) {
-                alert("Error fetching clearing items: " + err.message);
+                console.error(err.message);
             }
         }
 
-        // FIXED PROCESSING LOGIC: Let the DB Trigger calculate balances cleanly
         async function processReload(ledgerId, therapistId, amount, nextStatus) {
-            if (!confirm(`Are you sure you want to mark this transaction as ${nextStatus}?`)) return;
+            if (!confirm(`Mark this transaction transaction as ${nextStatus}?`)) return;
 
             try {
-                // 1. Update the ledger row status. 
-                // If set to 'Cleared', our PostgreSQL Trigger will instantly update the therapist's wallet.
                 const { error: ledgerErr } = await _supabase
                     .from('wallet_ledger')
                     .update({ status: nextStatus })
@@ -295,32 +679,28 @@
 
                 if (ledgerErr) throw ledgerErr;
 
-                // 2. AUTOMATION BONUS: If approving exactly ₱250, auto-deduct the onboarding activation fee
                 if (nextStatus === 'Cleared' && parseFloat(amount) === 250) {
-                    const { error: feeErr } = await _supabase
-                        .from('wallet_ledger')
-                        .insert([
-                            {
-                                therapist_id: therapistId,
-                                description: "Account Activation Registration Fee",
-                                transaction_type: "Registration Fee",
-                                status: "Cleared",
-                                amount: 250.00
-                            }
-                        ]);
-                    if (feeErr) console.error("Error creating registration deduction entry:", feeErr);
+                    await _supabase.from('wallet_ledger').insert([
+                        {
+                            therapist_id: therapistId,
+                            description: "Account Activation Registration Fee",
+                            transaction_type: "Registration Fee",
+                            status: "Cleared",
+                            amount: 250.00
+                        }
+                    ]);
                 }
 
-                alert(`Transaction successfully processed as: ${nextStatus}`);
-                await fetchPendingTopUps(); 
+                alert(`Processed successfully.`);
+                await refreshDashboardData(); 
 
             } catch (err) {
-                alert("Database Processing Fault: " + err.message);
+                alert("Error: " + err.message);
             }
         }
 
         document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
-            if (confirm("Sign out from secure administrator clearing desk session?")) {
+            if (confirm("Sign out from active session?")) {
                 await _supabase.auth.signOut();
                 window.location.href = "therapist-login.html";
             }
