@@ -28,10 +28,9 @@
             background-color: var(--dark-bg);
             color: var(--text-light);
             min-height: 100vh;
-            padding: 120px 5% 40px 5%; /* Space for fixed top header */
+            padding: 120px 5% 40px 5%; 
         }
 
-        /* Fixed Top Header Navigation */
         header {
             background-color: rgba(17, 20, 26, 0.95);
             padding: 20px 5%;
@@ -81,7 +80,6 @@
             border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* Nav Menu Links architecture */
         .nav-menu {
             display: flex;
             align-items: center;
@@ -101,7 +99,6 @@
             color: var(--primary-gold);
         }
 
-        /* Hamburger Button Vector styling */
         .menu-toggle {
             display: none;
             flex-direction: column;
@@ -122,7 +119,6 @@
             transition: transform 0.3s, opacity 0.3s;
         }
 
-        /* Dashboard Layout Grid */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -150,7 +146,6 @@
             padding-bottom: 10px;
         }
 
-        /* Wallet Core Visual Matrix */
         .wallet-display {
             text-align: center;
             padding: 20px 0;
@@ -174,7 +169,6 @@
             margin-top: 5px;
         }
 
-        /* Informative Notification Elements */
         .notice-box {
             background-color: rgba(214, 175, 55, 0.05);
             border-left: 3px solid var(--primary-gold);
@@ -185,7 +179,10 @@
             line-height: 1.4;
         }
 
-        /* Payment Destination Banner Instructions */
+        .notice-box strong {
+            color: var(--primary-gold);
+        }
+
         .payment-destination-box {
             background-color: rgba(16, 185, 129, 0.03);
             border: 1px solid rgba(16, 185, 129, 0.2);
@@ -203,7 +200,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Input Controls and Top-Up Button */
         .form-group {
             margin-bottom: 15px;
         }
@@ -231,7 +227,6 @@
             border-color: var(--primary-gold);
         }
 
-        /* Checkbox matrix mechanics for profile properties configuration */
         .checkbox-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -300,7 +295,6 @@
             background-color: #004fc2;
         }
 
-        /* Transaction History Ledger Data Tables */
         .table-container {
             overflow-x: auto;
         }
@@ -338,7 +332,6 @@
             font-weight: 600;
         }
 
-        /* Responsive Breakpoints & Mobile Overlay Drawers */
         @media (max-width: 768px) {
             body {
                 padding-top: 110px;
@@ -423,7 +416,10 @@
                 </div>
 
                 <div class="notice-box">
-                    Each completed ₱500 booking automatically auto-deducts our 20% platform cut (<strong>₱100.00</strong>). Keep balance above ₱100 to remain on the booking dispatch map.
+                    <strong>Operational Metrics:</strong><br>
+                    • Account Registration Fee: <strong>₱250.00</strong><br>
+                    • Shared-Profit Ratio: <strong>80/20 Split</strong><br>
+                    • The platform's 20% cut auto-deducts from your available balance here. Please keep your account balance above ₱100 to remain visible on the booking dispatch map.
                 </div>
 
                 <form id="topUpForm">
@@ -440,7 +436,7 @@
 
                     <div class="form-group">
                         <label>Amount to Top-Up (PHP)</label>
-                        <input type="number" id="topUpAmount" value="200" min="100" step="50" required>
+                        <input type="number" id="topUpAmount" value="250" min="100" step="50" required>
                     </div>
                     <div class="form-group">
                         <label>GCash Reference Number (13 Digits)</label>
@@ -511,13 +507,11 @@
     </div>
 
     <script>
-        // Connect system initialization using your explicit access credentials keys
         const SUPABASE_URL = "https://lkyjuwwvciyyozduzxso.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreWp1d3d2Y2l5eW96ZHV6eHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODY1MTIsImV4cCI6MjA5NDY2MjUxMn0.IY3WU42SdnLnE94XcKZDZXCYXlLxZyWwpFy7YwzdWM8";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // UI Core Constants Map Links Handles
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         const logoutLink = document.getElementById('logoutLink');
@@ -528,13 +522,11 @@
 
         let currentUser = null;
 
-        // Hamburger Mobile Menu Display Toggle Mechanics
         mobileMenuBtn.addEventListener('click', () => {
             mobileMenuBtn.classList.toggle('active');
             navMenu.classList.toggle('active');
         });
 
-        // Security Authentication Router Enforcement Block
         async function checkSecuritySession() {
             const { data: { session }, error } = await _supabase.auth.getSession();
             
@@ -549,7 +541,6 @@
             await fetchLedgerLogs();
         }
 
-        // Live Profile Properties Fetch and Bind Controller Engine
         async function loadTherapistProfileData() {
             try {
                 const { data: profile, error } = await _supabase
@@ -561,11 +552,9 @@
                 if (error) throw error;
 
                 if (profile) {
-                    // Render operational balances matching live cloud records
                     const balance = parseFloat(profile.wallet_balance || 0);
                     balanceDisplay.textContent = `₱${balance.toFixed(2)}`;
                     
-                    // Evaluate map rendering eligibility rules
                     if (balance < 100) {
                         onlineStatus.textContent = "Offline (Low Balance)";
                         onlineStatus.className = "status-badge low-balance";
@@ -574,7 +563,6 @@
                         if (!profile.is_online) onlineStatus.className = "status-badge low-balance";
                     }
 
-                    // Map custom array data back onto checkbox view trees safely
                     if (profile.specialties && Array.isArray(profile.specialties)) {
                         profile.specialties.forEach(spec => {
                             const checkbox = document.querySelector(`#specialtiesContainer input[value="${spec}"]`);
@@ -594,7 +582,6 @@
             }
         }
 
-        // Load historical transaction logs linked to this therapist account
         async function fetchLedgerLogs() {
             try {
                 const { data: logs, error } = await _supabase
@@ -607,7 +594,6 @@
 
                 if (logs && logs.length > 0) {
                     emptyLedgerPlaceholder.style.display = "none";
-                    // Clear out old generated table entries before reloading fresh state
                     const rowsToRemove = ledgerBody.querySelectorAll('tr:not(#emptyLedgerPlaceholder)');
                     rowsToRemove.forEach(row => row.remove());
 
@@ -615,15 +601,16 @@
                         const dateObj = new Date(log.created_at);
                         const timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + `, ` + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
                         
-                        const isCredit = log.transaction_type === 'Top-Up' || log.transaction_type === 'System Credit';
-                        const typeClass = isCredit ? 'text-credit' : 'text-deduct';
-                        const prefix = isCredit ? '+' : '-';
+                        // Check if the ledger line type is a deduction type
+                        const isDeduction = log.transaction_type === 'Registration Fee' || log.transaction_type === 'Booking Commission' || log.transaction_type === 'System Deduction';
+                        const typeClass = isDeduction ? 'text-deduct' : 'text-credit';
+                        const prefix = isDeduction ? '-' : '+';
 
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${timeString}</td>
                             <td>${log.description}</td>
-                            <td class="${typeClass}">${log.status || 'Cleared'}</td>
+                            <td><span style="font-weight: 600; color: ${log.status === 'Pending Approval' ? 'var(--primary-gold)' : 'var(--text-light)'}">${log.status || 'Cleared'}</span></td>
                             <td class="${typeClass}">${prefix}₱${parseFloat(log.amount).toFixed(2)}</td>
                         `;
                         ledgerBody.appendChild(tr);
@@ -634,14 +621,12 @@
             }
         }
 
-        // Profile Properties Submission and Persistence Sync Engine
         document.getElementById('profileSettingsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('saveProfileBtn');
             saveBtn.disabled = true;
             saveBtn.textContent = "Updating Target Parameters...";
 
-            // Scrape arrays from active checked node values matrices
             const selectedSpecialties = Array.from(document.querySelectorAll('#specialtiesContainer input:checked')).map(el => el.value);
             const selectedAreas = Array.from(document.querySelectorAll('#serviceAreasContainer input:checked')).map(el => el.value);
 
@@ -664,7 +649,6 @@
             }
         });
 
-        // Smart Copy and Deep Link Launch Feature
         const launchGcashBtn = document.getElementById('launchGcashBtn');
         const systemGcashNumber = "09310410733";
 
@@ -679,7 +663,6 @@
             });
         });
 
-        // Top-Up Record Submission Handler
         document.getElementById('topUpForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('topUpSubmitBtn');
@@ -697,7 +680,6 @@
             }
 
             try {
-                // Insert a tracking transaction record inside the server data structure ledger tables
                 const { error } = await _supabase
                     .from('wallet_ledger')
                     .insert([
@@ -723,7 +705,6 @@
             }
         });
 
-        // Logout sequence hook logic
         logoutLink.addEventListener('click', async () => {
             if (confirm("Are you sure you want to securely log out of your dispatch account session?")) {
                 await _supabase.auth.signOut();
@@ -731,7 +712,6 @@
             }
         });
 
-        // Kick off authorization loop checks immediately upon asset boot
         window.addEventListener('DOMContentLoaded', checkSecuritySession);
     </script>
 </body>

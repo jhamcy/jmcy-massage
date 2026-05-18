@@ -215,7 +215,6 @@
         const adminLedgerBody = document.getElementById('adminLedgerBody');
         const emptyPlaceholder = document.getElementById('emptyAdminPlaceholder');
 
-        // Enforcement Route Guard: Restrict non-admin accounts from loading page metrics
         async function enforceAdminSecurity() {
             const { data: { session }, error } = await _supabase.auth.getSession();
             
@@ -225,11 +224,9 @@
                 return;
             }
             
-            // Authorized session cleared -> launch lookup cycle
             await fetchPendingTopUps();
         }
 
-        // Fetch all Ledger requests labeled 'Pending Approval'
         async function fetchPendingTopUps() {
             try {
                 const { data: pendingLogs, error } = await _supabase
@@ -248,7 +245,6 @@
 
                 if (error) throw error;
 
-                // Clear out historical generated items safely
                 const rowsToRemove = adminLedgerBody.querySelectorAll('tr:not(#emptyAdminPlaceholder)');
                 rowsToRemove.forEach(row => row.remove());
 
@@ -285,40 +281,35 @@
             }
         }
 
-        // Processing Logic: Core Balance Adjustment & State Tracking Database updates
+        // FIXED PROCESSING LOGIC: Let the DB Trigger calculate balances cleanly
         async function processReload(ledgerId, therapistId, amount, nextStatus) {
             if (!confirm(`Are you sure you want to mark this transaction as ${nextStatus}?`)) return;
 
             try {
-                if (nextStatus === 'Cleared') {
-                    // 1. Fetch current profile wallet state 
-                    const { data: profile, error: fetchErr } = await _supabase
-                        .from('profiles')
-                        .select('wallet_balance')
-                        .eq('id', therapistId)
-                        .single();
-
-                    if (fetchErr) throw fetchErr;
-
-                    const currentBalance = parseFloat(profile.wallet_balance || 0);
-                    const calculatedNewBalance = currentBalance + parseFloat(amount);
-
-                    // 2. Commit combined sum back onto database profile properties
-                    const { error: profileErr } = await _supabase
-                        .from('profiles')
-                        .update({ wallet_balance: calculatedNewBalance })
-                        .eq('id', therapistId);
-
-                    if (profileErr) throw profileErr;
-                }
-
-                // 3. Mark transaction state row entry out of checking queue 
+                // 1. Update the ledger row status. 
+                // If set to 'Cleared', our PostgreSQL Trigger will instantly update the therapist's wallet.
                 const { error: ledgerErr } = await _supabase
                     .from('wallet_ledger')
                     .update({ status: nextStatus })
                     .eq('id', ledgerId);
 
                 if (ledgerErr) throw ledgerErr;
+
+                // 2. AUTOMATION BONUS: If approving exactly ₱250, auto-deduct the onboarding activation fee
+                if (nextStatus === 'Cleared' && parseFloat(amount) === 250) {
+                    const { error: feeErr } = await _supabase
+                        .from('wallet_ledger')
+                        .insert([
+                            {
+                                therapist_id: therapistId,
+                                description: "Account Activation Registration Fee",
+                                transaction_type: "Registration Fee",
+                                status: "Cleared",
+                                amount: 250.00
+                            }
+                        ]);
+                    if (feeErr) console.error("Error creating registration deduction entry:", feeErr);
+                }
 
                 alert(`Transaction successfully processed as: ${nextStatus}`);
                 await fetchPendingTopUps(); 
@@ -328,15 +319,13 @@
             }
         }
 
-        // Dedicated administrative account clean logout routine
         document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
-            if (confirm("Sign out from secure administrator clearing desk desk session?")) {
+            if (confirm("Sign out from secure administrator clearing desk session?")) {
                 await _supabase.auth.signOut();
                 window.location.href = "therapist-login.html";
             }
         });
 
-        // Initialize session checks when DOM layout is stable
         window.addEventListener('DOMContentLoaded', enforceAdminSecurity);
     </script>
 </body>
