@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Therapist Dashboard | JMCY Massage</title>
-    <!-- Import Supabase Javascript Client SDK Engine -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -393,7 +392,6 @@
 </head>
 <body>
 
-    <!-- Header containing dynamic therapist parameters and navigation controls -->
     <header>
         <div class="logo">JMCY<span>Dashboard</span></div>
         
@@ -415,7 +413,6 @@
 
     <div class="dashboard-grid">
         
-        <!-- COLUMN 1: WALLET CONTROLS CARD -->
         <div class="column-left">
             <div class="card">
                 <h3>My System Wallet</h3>
@@ -429,7 +426,6 @@
                     Each completed ₱500 booking automatically auto-deducts our 20% platform cut (<strong>₱100.00</strong>). Keep balance above ₱100 to remain on the booking dispatch map.
                 </div>
 
-                <!-- Top up processing terminal -->
                 <form id="topUpForm">
                     <div class="payment-destination-box">
                         💡 <strong>Quick Reload Steps:</strong><br>
@@ -438,7 +434,6 @@
                         3. Return here and submit your 13-digit reference code.
                     </div>
 
-                    <!-- Express Link Out Launcher Trigger -->
                     <button type="button" class="btn-gcash" id="launchGcashBtn">
                         📲 Pay via GCash (Auto-Copy Number)
                     </button>
@@ -456,10 +451,8 @@
             </div>
         </div>
 
-        <!-- COLUMN 2: PARAMETERS MANAGEMENT & TRANSACTION HISTORY LEDGER -->
         <div class="column-right">
             
-            <!-- NEW SECTION: SKILLS SPECIALTIES & GEOGRAPHIC SERVICE COVERAGE SELECTION MAP -->
             <div class="card">
                 <h3>Dispatch Settings &amp; Qualifications</h3>
                 <form id="profileSettingsForm">
@@ -478,14 +471,12 @@
                     <div class="form-group">
                         <label>Active Service Coverage Area (Your Booking Limits)</label>
                         <div class="checkbox-grid" id="serviceAreasContainer">
-                            <label class="checkbox-item"><input type="checkbox" value="Navotas City"> Navotas City</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Malabon City"> Malabon City</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Caloocan City (South)"> Caloocan (South)</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Caloocan City (North)"> Caloocan (North)</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Valenzuela City"> Valenzuela City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Makati City"> Makati City</label>
+                            <label class="checkbox-item"><input type="checkbox" value="BGC (Taguig)"> BGC (Taguig)</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Pasay Area"> Pasay Area</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Manila"> Manila</label>
+                            <label class="checkbox-item"><input type="checkbox" value="Parañaque"> Parañaque</label>
                             <label class="checkbox-item"><input type="checkbox" value="Quezon City"> Quezon City</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Manila City"> Manila City</label>
-                            <label class="checkbox-item"><input type="checkbox" value="Marikina City"> Marikina City</label>
                         </div>
                     </div>
 
@@ -508,7 +499,6 @@
                             </tr>
                         </thead>
                         <tbody id="ledgerBody">
-                            <!-- Dynamic transactional components inject through runtime loops here -->
                             <tr id="emptyLedgerPlaceholder">
                                 <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No historical transaction history recorded in your profile yet.</td>
                             </tr>
