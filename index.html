@@ -365,7 +365,7 @@
 
         .btn-submit-form {
             width: 100%;
-            background-color: #3b82f6; /* Shifted to administrative processing blue styling */
+            background-color: #3b82f6;
             color: #ffffff;
             border: none;
             padding: 16px;
@@ -380,6 +380,95 @@
 
         .btn-submit-form:hover {
             background-color: #2563eb;
+        }
+
+        /* Premium Thank You Modal Notification Styles */
+        .thank-you-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 13, 17, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .thank-you-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .thank-you-card {
+            background-color: var(--card-bg);
+            border: 1px solid #232936;
+            border-top: 4px solid var(--primary-gold);
+            width: 90%;
+            max-width: 440px;
+            padding: 35px 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.4s ease;
+        }
+
+        .thank-you-modal-overlay.active .thank-you-card {
+            transform: translateY(0);
+        }
+
+        .success-checkmark-icon {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            color: var(--success-green);
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .thank-you-card h3 {
+            font-size: 22px;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .thank-you-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .btn-modal-whatsapp {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-gold);
+            color: #000000;
+            text-decoration: none;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-modal-whatsapp:hover {
+            opacity: 0.95;
         }
 
         /* Process Steps Layout */
@@ -772,6 +861,15 @@
         </div>
     </section>
 
+    <div class="thank-you-modal-overlay" id="thankYouModal">
+        <div class="thank-you-card">
+            <div class="success-checkmark-icon">✓</div>
+            <h3>Booking Registered!</h3>
+            <p>Your session profile has been logged on the database. To finalize therapist deployment, click the button below to forward your dispatch alert text to our admin clearing coordinator desk.</p>
+            <a href="#" id="modalWhatsAppTrigger" class="btn-modal-whatsapp" target="_blank">Proceed to WhatsApp</a>
+        </div>
+    </div>
+
     <section style="background-color: #11141a;">
         <h2 class="section-title">Areas Ready For Service</h2>
         <div style="max-width: 600px; margin: 0 auto;">
@@ -904,8 +1002,11 @@
         updateLivePricing();
 
         // =========================================================
-        // FORM SUBMISSION TO SUPABASE WITH EXPLICIT ADMIN ROUTING
+        // FORM SUBMISSION TO SUPABASE WITH AUTOMATIC WHATSAPP ROUTING
         // =========================================================
+        const thankYouModal = document.getElementById('thankYouModal');
+        const modalWhatsAppTrigger = document.getElementById('modalWhatsAppTrigger');
+
         document.getElementById('spaBookingForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -939,7 +1040,7 @@
             submitBtn.style.backgroundColor = "#d97706";
 
             try {
-                // 1. SAVE DISPATCH TO SUPABASE UNDER THE 'Pending Admin' FLAGS
+                // 1. SAVE DISPATCH TO SUPABASE
                 const { data: newBooking, error: dbInsertErr } = await _supabase
                     .from('bookings')
                     .insert([
@@ -950,7 +1051,7 @@
                             exact_address: clientAddress,
                             modalities: chosenModalities,
                             total_price: rawNumericTotal,
-                            therapist_id: null, // Open for manual admin allocation assignment
+                            therapist_id: null,
                             status: 'Pending Admin'
                         }
                     ])
@@ -959,10 +1060,14 @@
 
                 if (dbInsertErr) throw dbInsertErr;
 
-                // 2. ROUTE FORWARDING LINK DIRECTLY TO THE ADMIN WHATSAPP BUSINESS URL
-                alert(`Booking recorded! Opening WhatsApp to alert the admin desk coordinator...`);
-                launchAdminWhatsAppNotification(newBooking.id, clientName, clientPhone, selectedCity, clientAddress, chosenModalities, totalPriceDisplay.textContent);
+                // 2. BUILD THE DISPATCH STRING LINK
+                const waLink = generateWhatsAppPayload(newBooking.id, clientName, clientPhone, selectedCity, clientAddress, chosenModalities, totalPriceDisplay.textContent);
+                
+                // 3. ASSIGN PAYLOAD TO THE MODAL CTA & ACTIVATE THE THANK YOU NOTICE OVERLAY
+                modalWhatsAppTrigger.setAttribute('href', waLink);
+                thankYouModal.classList.add('active');
 
+                // 4. RESET FRONTEND INTERFACES
                 document.getElementById('spaBookingForm').reset();
                 updateLivePricing();
 
@@ -975,9 +1080,23 @@
             }
         });
 
-        function launchAdminWhatsAppNotification(bookingId, name, phone, city, address, modalities, finalCost) {
-            // Replace 'yourdomain.com' with your actual production live URL path
+        // Close Thank You display structural layout if user clicks out of the container bounds
+        thankYouModal.addEventListener('click', (e) => {
+            if (e.target === thankYouModal) {
+                thankYouModal.classList.remove('active');
+            }
+        });
+
+        // Hide notice cleanly after they confirm click to proceed over to WhatsApp app ecosystem
+        modalWhatsAppTrigger.addEventListener('click', () => {
+            setTimeout(() => {
+                thankYouModal.classList.remove('active');
+            }, 600);
+        });
+
+        function generateWhatsAppPayload(bookingId, name, phone, city, address, modalities, finalCost) {
             const adminDashboardUrl = `https://yourdomain.com/admin-portal.html?assign=${bookingId}`;
+            const adminWhatsAppNumber = "639091297422"; 
 
             const messageText = 
 `🔔 *NEW INTENT CUSTOMER BOOKING ARRIVED* 🔔
@@ -1001,11 +1120,7 @@ Tap the portal dispatch mapping link below to assign an active therapist to this
 👉 [ 🖥️ ASSIGN THERAPIST OVERRIDE ]
 ${adminDashboardUrl}`;
 
-            // Append encoded operational details directly into the Admin WhatsApp payload variable link
-            const encodedMessage = encodeURIComponent(messageText);
-            const finalWhatsAppLink = `https://wa.me/message/45BCBWNOLWM6L1?text=${encodedMessage}`;
-
-            window.open(finalWhatsAppLink, '_blank');
+            return `https://api.whatsapp.com/send?phone=${adminWhatsAppNumber}&text=${encodeURIComponent(messageText)}`;
         }
     </script>
 </body>
